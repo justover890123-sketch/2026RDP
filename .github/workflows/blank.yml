@@ -29,13 +29,11 @@ jobs:
           Restart-Service -Name TermService -Force
 
       - name: Setup Permanent Local User
-        env:
-          CUSTOM_PASS: ${{ secrets.RDP_PASSWORD }}
         run: |
           $username = "PermanentRDP"
-          $securePass = ConvertTo-SecureString $env:CUSTOM_PASS -AsPlainText -Force
+          $plainPass = "AzanBakers@2026!"
+          $securePass = ConvertTo-SecureString $plainPass -AsPlainText -Force
           
-          # Check if user already exists, if not create it
           if (-not (Get-LocalUser -Name $username -ErrorAction SilentlyContinue)) {
               New-LocalUser -Name $username -Password $securePass -AccountNeverExpires -PasswordNeverExpires
           } else {
@@ -55,7 +53,6 @@ jobs:
 
       - name: Connect Tailscale with Fixed Hostname
         run: |
-          # Using a fixed hostname 'gh-permanent-rdp' so Tailscale reuses or maps consistently
           & "$env:ProgramFiles\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} --hostname=gh-permanent-rdp --reset
           
           $tsIP = $null
@@ -77,13 +74,12 @@ jobs:
           Write-Host "`n=========================================="
           Write-Host "       RDP CONNECTION READY               "
           Write-Host "=========================================="
-          Write-Host " Tailscale IP : $env:TAILSCALE_IP"
           Write-Host " Hostname     : gh-permanent-rdp"
           Write-Host " Username     : PermanentRDP"
-          Write-Host " Password     : (Secret configured in repo)"
+          Write-Host " Password     : AzanBakers@2026!"
+          Write-Host " Tailscale IP : $env:TAILSCALE_IP"
           Write-Host "==========================================`n"
 
-          # Keep alive loop to prevent runner shutdown
           while ($true) {
               Write-Host "[$(Get-Date)] RDP Session Active..."
               Start-Sleep -Seconds 300
